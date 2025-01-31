@@ -15,22 +15,36 @@ export const revalidate = 3600;
 const MESSAGE_LIMIT = 10;
 
 export async function POST(request: Request) {
-  const { content, platform, userId } = await request.json();
-
-  // 1. Generate Hash for Caching
-  const contentHash = await hashContent(content + platform);
-  const { data: cached } = await supabase
-    .from("cache")
-    .select("result")
-    .eq("hash", contentHash)
-    .single();
-
-  if (cached) {
-    return NextResponse.json({ optimized: cached.result });
-  }
-
-  // 2. Call AI API if no cache
   try {
+    // Parse request body
+    const { content, platform, userId } = await request.json();
+
+    if (!content || !platform) {
+      return NextResponse.json(
+        { error: "Missing required fields: content or platform" },
+        { status: 400 }
+      );
+    }
+
+    // 1. Generate Hash for Caching
+    const contentHash = await hashContent(content + platform);
+
+    // Check cache
+    const { data: cached, error: cacheError } = await supabase
+      .from("cache")
+      .select("result")
+      .eq("hash", contentHash)
+      .single();
+
+    if (cacheError && cacheError.message !== "No rows found") {
+      console.error("Cache lookup failed:", cacheError);
+    }
+
+    if (cached) {
+      return NextResponse.json({ optimized: cached.result });
+    }
+
+    // 2. Call AI API if no cache
     const response = await fetch(
       "https://api-inference.huggingface.co/models/deepseek-ai/deepseek-chat",
       {
@@ -42,6 +56,15 @@ export async function POST(request: Request) {
         }),
       }
     );
+
+    if (!response.ok) {
+      const errorData = await response.json();
+      console.error("AI API error:", errorData);
+      return NextResponse.json(
+        { error: "Failed to optimize content", details: errorData },
+        { status: 500 }
+      );
+    }
 
     const result = await response.json();
     const optimized = result[0]?.generated_text || content;
@@ -60,7 +83,11 @@ export async function POST(request: Request) {
 
     return NextResponse.json({ optimized });
   } catch (error) {
-    return NextResponse.json({ optimized: content });
+    console.error("Unexpected error:", error);
+    return NextResponse.json(
+      { error: "An unexpected error occurred" },
+      { status: 500 }
+    );
   }
 }
 
@@ -82,32 +109,37 @@ async function storeUserMessage(
   platform: string
 ) {
   if (!userId) return;
-  // Get current messages
-  const { data: messages, error } = await supabase
-    .from("messages")
-    .select("id")
-    .eq("user_id", userId)
-    .order("created_at", { ascending: false });
 
-  if (error) {
-    console.error("Failed to fetch messages:", error);
-    return;
+  try {
+    // Get current messages
+    const { data: messages, error } = await supabase
+      .from("messages")
+      .select("id")
+      .eq("user_id", userId)
+      .order("created_at", { ascending: false });
+
+    if (error) {
+      console.error("Failed to fetch messages:", error);
+      return;
+    }
+
+    // If user already has MESSAGE_LIMIT messages, delete the oldest one
+    if (messages.length >= MESSAGE_LIMIT) {
+      const oldestMessageId = messages[messages.length - 1].id;
+      await supabase.from("messages").delete().eq("id", oldestMessageId);
+    }
+
+    // Insert new message
+    await supabase.from("messages").insert([
+      {
+        user_id: userId,
+        content,
+        optimized,
+        platform,
+        created_at: new Date().toISOString(),
+      },
+    ]);
+  } catch (error) {
+    console.error("Failed to store user message:", error);
   }
-
-  // If user already has MESSAGE_LIMIT messages, delete the oldest one
-  if (messages.length >= MESSAGE_LIMIT) {
-    const oldestMessageId = messages[messages.length - 1].id;
-    await supabase.from("messages").delete().eq("id", oldestMessageId);
-  }
-
-  // Insert new message
-  await supabase.from("messages").insert([
-    {
-      user_id: userId,
-      content,
-      optimized,
-      platform,
-      created_at: new Date().toISOString(),
-    },
-  ]);
 }

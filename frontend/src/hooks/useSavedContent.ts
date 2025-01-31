@@ -32,7 +32,6 @@ export const useSavedContent = (userId: string | undefined | null) => {
     } else if (data && data.length > 0) {
       const savedData = data.map((item: SavedContentRow) => item.content);
       setSavedContent(savedData);
-
       // Cache in localStorage
       localStorage.setItem(`savedContent_${userId}`, JSON.stringify(savedData));
     } else {
@@ -60,11 +59,38 @@ export const useSavedContent = (userId: string | undefined | null) => {
     } else {
       setSavedContent([...savedContent, content]); // Update local state
       alert("Content saved successfully!");
-
       // Clear localStorage cache to force a fresh fetch
       localStorage.removeItem(`savedContent_${userId}`);
     }
   };
 
-  return { savedContent, saveContent };
+  // Delete content from the database
+  const deleteContent = async (content: string) => {
+    if (!userId) return alert("Please log in to delete content.");
+
+    // Remove from Supabase
+    const { error } = await supabase
+      .from("saved_content")
+      .delete()
+      .eq("user_id", userId)
+      .eq("content", content);
+
+    if (error) {
+      console.error("Error deleting content:", error);
+    } else {
+      // Update local state
+      const updatedContent = savedContent.filter((item) => item !== content);
+      setSavedContent(updatedContent);
+
+      // Update localStorage cache
+      localStorage.setItem(
+        `savedContent_${userId}`,
+        JSON.stringify(updatedContent)
+      );
+
+      alert("Content deleted successfully!");
+    }
+  };
+
+  return { savedContent, saveContent, deleteContent };
 };

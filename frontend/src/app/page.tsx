@@ -11,7 +11,6 @@ import SaveButton from "@/components/SaveButton";
 import { useSavedContent } from "@/hooks/useSavedContent";
 import { supabase } from "@/lib/supabase";
 import { User } from "@supabase/supabase-js";
-import SponsorLinks from "@/components/SponsorLinks";
 
 type Platform = "threads" | "bluesky" | "x";
 const platforms = [
@@ -39,7 +38,9 @@ export default function Home() {
     fetchUser();
   }, []);
 
-  const { savedContent, saveContent } = useSavedContent(user?.id ?? null);
+  const { savedContent, saveContent, deleteContent } = useSavedContent(
+    user?.id ?? null
+  );
 
   const handleSelectContent = (selectedContent: string) => {
     setContent(selectedContent);
@@ -90,9 +91,7 @@ export default function Home() {
       </nav>
 
       {/* Main Content */}
-      <main className="pt-20 px-4 pb-24">
-        {" "}
-        {/* Added padding-bottom for footer */}
+      <main className="pt-20 px-4 pb-6">
         <div className="max-w-4xl mx-auto space-y-8">
           {/* Platform Selection */}
           <div className="flex justify-center space-x-2 p-2 bg-white dark:bg-gray-800 rounded-lg shadow-sm">
@@ -134,12 +133,13 @@ export default function Home() {
         onClose={() => setIsChatOpen(false)}
         savedContent={savedContent}
         onSelectContent={handleSelectContent}
+        onDeleteContent={deleteContent} // Pass deleteContent here
       />
 
       {/* Chat Toggle Button */}
       <button
         onClick={() => setIsChatOpen((prev) => !prev)}
-        className={`fixed bottom-20 right-6 bg-blue-500 hover:bg-blue-600 text-white p-3 rounded-full shadow-lg transition-all duration-300 hover:scale-105 active:scale-95 ${
+        className={`fixed bottom-6 right-6 bg-blue-500 hover:bg-blue-600 text-white p-3 rounded-full shadow-lg transition-all duration-300 hover:scale-105 active:scale-95 ${
           savedContent.length > 0 && !isChatOpen ? "animate-bounce" : ""
         }`}
       >
@@ -150,10 +150,6 @@ export default function Home() {
           </span>
         )}
       </button>
-
-      <div className="fixed bottom-4 left-1/2 -translate-x-1/2 flex flex-col items-center gap-2">
-        <SponsorLinks orientation="horizontal" />
-      </div>
     </div>
   );
 }

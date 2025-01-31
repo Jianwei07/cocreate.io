@@ -7,6 +7,7 @@ interface ChatPanelProps {
   onClose: () => void;
   savedContent: string[];
   onSelectContent?: (content: string) => void;
+  onDeleteContent?: (content: string) => void; // Add onDeleteContent prop
 }
 
 const ChatPanel = ({
@@ -14,6 +15,7 @@ const ChatPanel = ({
   onClose,
   savedContent,
   onSelectContent,
+  onDeleteContent,
 }: ChatPanelProps) => {
   const [isMinimized, setIsMinimized] = useState(false);
   const [showCopyAlert, setShowCopyAlert] = useState(false);
@@ -114,7 +116,7 @@ const ChatPanel = ({
                           <Copy size={14} />
                         </button>
                         <button
-                          onClick={() => {}}
+                          onClick={() => onDeleteContent?.(item.content)} // Call onDeleteContent
                           className="p-1 hover:bg-gray-200 rounded transition-colors"
                           title="Delete"
                         >
