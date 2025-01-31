@@ -1,4 +1,4 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
+// components/Editor.tsx
 "use client";
 import { Dispatch, SetStateAction, useState } from "react";
 import { splitContent, PLATFORM_LIMITS } from "@/lib/utils";
@@ -7,7 +7,7 @@ import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Textarea } from "@/components/ui/textarea";
-import { ClipboardCopy, MessageSquare } from "lucide-react";
+import { ClipboardCopy } from "lucide-react";
 
 type Platform = "threads" | "bluesky" | "x";
 
@@ -32,16 +32,25 @@ export default function Editor({
   const characterCount = (optimizedContent || content).length;
   const [copiedIndex, setCopiedIndex] = useState<number | null>(null);
 
+  // Copy individual chunk
   const handleCopy = (chunk: string, index: number) => {
     navigator.clipboard.writeText(chunk);
     setCopiedIndex(index);
     setTimeout(() => setCopiedIndex(null), 2000);
   };
 
+  // Copy all content
+  const handleCopyAll = () => {
+    const allContent = chunks.join("\n\n"); // Join chunks with double newlines
+    navigator.clipboard.writeText(allContent).then(() => {
+      alert("All content copied to clipboard!");
+    });
+  };
+
   const platformConfig = {
-    threads: { limit: 500, icon: MessageSquare },
-    bluesky: { limit: 300, icon: MessageSquare },
-    x: { limit: 280, icon: MessageSquare },
+    threads: { limit: 500 },
+    bluesky: { limit: 300 },
+    x: { limit: 280 },
   };
 
   return (
@@ -64,7 +73,6 @@ export default function Editor({
             ))}
           </TabsList>
         </Tabs>
-
         <div className="flex items-center gap-2">
           <Badge variant="outline" className="text-sm">
             {characterCount} characters
@@ -121,6 +129,19 @@ export default function Editor({
             </CardContent>
           </Card>
         ))}
+
+        {/* Copy All Content Button */}
+        {chunks.length > 0 && (
+          <div className="flex justify-end">
+            <Button
+              onClick={handleCopyAll}
+              className="bg-green-500 text-white hover:bg-green-600 transition-colors"
+            >
+              <ClipboardCopy className="h-4 w-4 mr-2" />
+              Copy All Content
+            </Button>
+          </div>
+        )}
       </div>
     </div>
   );

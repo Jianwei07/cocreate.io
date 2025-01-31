@@ -2,6 +2,7 @@
 import { NextResponse } from "next/server";
 import { createClient } from "@supabase/supabase-js";
 
+// Initialize Supabase
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
   process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
@@ -10,10 +11,13 @@ const supabase = createClient(
 // Cache for 1 hour (Vercel Edge Cache)
 export const revalidate = 3600;
 
-export async function POST(request: Request) {
-  const { content, platform } = await request.json();
+// Limit messages per user
+const MESSAGE_LIMIT = 10;
 
-  // 1. Check cache first
+export async function POST(request: Request) {
+  const { content, platform, userId } = await request.json();
+
+  // 1. Generate Hash for Caching
   const contentHash = await hashContent(content + platform);
   const { data: cached } = await supabase
     .from("cache")
@@ -42,7 +46,7 @@ export async function POST(request: Request) {
     const result = await response.json();
     const optimized = result[0]?.generated_text || content;
 
-    // 3. Store in cache (TTL 3 days)
+    // 3. Store optimized response in cache (TTL 3 days)
     await supabase.from("cache").insert([
       {
         hash: contentHash,
@@ -51,13 +55,16 @@ export async function POST(request: Request) {
       },
     ]);
 
+    // 4. Store message in user's chat history
+    await storeUserMessage(userId, content, optimized, platform);
+
     return NextResponse.json({ optimized });
   } catch (error) {
     return NextResponse.json({ optimized: content });
   }
 }
 
-// Simple content hashing
+// Simple content hashing function
 async function hashContent(content: string): Promise<string> {
   const encoder = new TextEncoder();
   const data = encoder.encode(content);
@@ -65,4 +72,42 @@ async function hashContent(content: string): Promise<string> {
   return Array.from(new Uint8Array(hashBuffer))
     .map((b) => b.toString(16).padStart(2, "0"))
     .join("");
+}
+
+// Store user messages in Supabase, keeping only the last 10 messages
+async function storeUserMessage(
+  userId: string,
+  content: string,
+  optimized: string,
+  platform: string
+) {
+  if (!userId) return;
+  // Get current messages
+  const { data: messages, error } = await supabase
+    .from("messages")
+    .select("id")
+    .eq("user_id", userId)
+    .order("created_at", { ascending: false });
+
+  if (error) {
+    console.error("Failed to fetch messages:", error);
+    return;
+  }
+
+  // If user already has MESSAGE_LIMIT messages, delete the oldest one
+  if (messages.length >= MESSAGE_LIMIT) {
+    const oldestMessageId = messages[messages.length - 1].id;
+    await supabase.from("messages").delete().eq("id", oldestMessageId);
+  }
+
+  // Insert new message
+  await supabase.from("messages").insert([
+    {
+      user_id: userId,
+      content,
+      optimized,
+      platform,
+      created_at: new Date().toISOString(),
+    },
+  ]);
 }
