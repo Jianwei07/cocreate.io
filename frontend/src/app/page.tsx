@@ -152,7 +152,7 @@ export default function Home() {
         )}
       </button>
       {/* Sponsor Links Container at the Bottom */}
-      <div className="fixed bottom-4 left-1/2 -translate-x-1/2 flex flex-col items-center gap-2">
+      <div className="fixed bottom-4 left-1/3 -translate-x-1/2 flex flex-col items-center gap-2">
         <SponsorLinks orientation="horizontal" />
       </div>
     </div>
