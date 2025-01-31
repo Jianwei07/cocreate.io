@@ -1,10 +1,14 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 "use client";
-
 import { Dispatch, SetStateAction, useState } from "react";
 import { splitContent, PLATFORM_LIMITS } from "@/lib/utils";
+import { Card, CardContent, CardHeader } from "@/components/ui/card";
+import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
+import { Textarea } from "@/components/ui/textarea";
+import { ClipboardCopy, MessageSquare } from "lucide-react";
 
-// Define a type for the platform selection
 type Platform = "threads" | "bluesky" | "x";
 
 interface EditorProps {
@@ -31,64 +35,91 @@ export default function Editor({
   const handleCopy = (chunk: string, index: number) => {
     navigator.clipboard.writeText(chunk);
     setCopiedIndex(index);
-
-    // Reset "Copied!" message after 2 seconds
     setTimeout(() => setCopiedIndex(null), 2000);
   };
 
-  return (
-    <div className="max-w-4xl mx-auto p-4 space-y-6">
-      {/* Platform Selector */}
-      <div className="flex gap-4 items-center">
-        <label className="font-medium">Platform:</label>
-        <select
-          value={platform}
-          onChange={(e) => setPlatform(e.target.value as Platform)}
-          className="p-2 border rounded-md"
-        >
-          <option value="threads">Threads (500 chars)</option>
-          <option value="bluesky">Bluesky (300 chars)</option>
-          <option value="x">X/Twitter (280 chars)</option>
-        </select>
+  const platformConfig = {
+    threads: { limit: 500, icon: MessageSquare },
+    bluesky: { limit: 300, icon: MessageSquare },
+    x: { limit: 280, icon: MessageSquare },
+  };
 
-        <div className="ml-auto text-sm text-gray-600">
-          {characterCount} characters • {chunks.length} posts needed
+  return (
+    <div className="space-y-6">
+      {/* Platform Selector and Stats */}
+      <div className="flex items-center justify-between">
+        <Tabs
+          value={platform}
+          onValueChange={(value) => setPlatform(value as Platform)}
+          className="w-[400px]"
+        >
+          <TabsList className="grid grid-cols-3">
+            {Object.entries(platformConfig).map(([key, { limit }]) => (
+              <TabsTrigger key={key} value={key} className="gap-2">
+                {key.charAt(0).toUpperCase() + key.slice(1)}
+                <Badge variant="secondary" className="ml-1">
+                  {limit}
+                </Badge>
+              </TabsTrigger>
+            ))}
+          </TabsList>
+        </Tabs>
+
+        <div className="flex items-center gap-2">
+          <Badge variant="outline" className="text-sm">
+            {characterCount} characters
+          </Badge>
+          <Badge variant="outline" className="text-sm">
+            {chunks.length} posts
+          </Badge>
         </div>
       </div>
 
       {/* Text Editor */}
-      <textarea
-        value={content}
-        onChange={(e) => {
-          setContent(e.target.value);
-          setOptimizedContent(""); // Reset AI changes when user types
-        }}
-        placeholder="Paste your content here..."
-        className="w-full h-64 p-4 border rounded-md resize-none focus:ring-2 focus:ring-blue-500"
-      />
+      <Card className="border-2 border-gray-200 dark:border-gray-800 p-4">
+        <CardContent className="pt-4">
+          <Textarea
+            value={content}
+            onChange={(e) => {
+              setContent(e.target.value);
+              setOptimizedContent("");
+            }}
+            placeholder="Write or paste your content here..."
+            className="min-h-[200px] text-lg leading-relaxed resize-none border-none focus-visible:ring-0 p-0"
+          />
+        </CardContent>
+      </Card>
 
       {/* Post Previews */}
       <div className="space-y-4">
         {chunks.map((chunk, index) => (
-          <div key={index} className="p-4 border rounded-md bg-gray-50">
-            <div className="flex justify-between items-start mb-2">
-              <span className="text-sm font-medium">Post #{index + 1}</span>
-              <span className="text-sm text-gray-600">
-                {chunk.length}/{PLATFORM_LIMITS[platform]} chars
-              </span>
-            </div>
-            <p className="whitespace-pre-wrap">{chunk}</p>
-            <button
-              onClick={() => handleCopy(chunk, index)}
-              className={`mt-2 px-3 py-1 text-sm rounded-md transition-colors ${
-                copiedIndex === index
-                  ? "bg-green-500 text-white" // Change color when copied
-                  : "bg-blue-100 text-blue-600 hover:bg-blue-200"
-              }`}
-            >
-              {copiedIndex === index ? "Copied!" : "Copy Post"}
-            </button>
-          </div>
+          <Card
+            key={index}
+            className="border-2 border-gray-200 dark:border-gray-800 transition-all hover:shadow-md"
+          >
+            <CardHeader className="flex flex-row items-center justify-between p-4">
+              <div className="flex items-center gap-2">
+                <Badge variant="secondary">Post {index + 1}</Badge>
+                <span className="text-sm text-muted-foreground">
+                  {chunk.length}/{PLATFORM_LIMITS[platform]} chars
+                </span>
+              </div>
+              <Button
+                variant={copiedIndex === index ? "secondary" : "outline"}
+                size="sm"
+                onClick={() => handleCopy(chunk, index)}
+                className="gap-2"
+              >
+                <ClipboardCopy className="h-4 w-4" />
+                {copiedIndex === index ? "Copied!" : "Copy"}
+              </Button>
+            </CardHeader>
+            <CardContent className="p-4 pt-0">
+              <p className="whitespace-pre-wrap text-sm leading-relaxed">
+                {chunk}
+              </p>
+            </CardContent>
+          </Card>
         ))}
       </div>
     </div>

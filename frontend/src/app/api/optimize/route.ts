@@ -1,9 +1,10 @@
+/* eslint-disable @typescript-eslint/no-unused-vars */
 import { NextResponse } from "next/server";
 import { createClient } from "@supabase/supabase-js";
 
 const supabase = createClient(
-  process.env.SUPABASE_URL!,
-  process.env.SUPABASE_KEY!
+  process.env.NEXT_PUBLIC_SUPABASE_URL!,
+  process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
 );
 
 // Cache for 1 hour (Vercel Edge Cache)
@@ -41,12 +42,12 @@ export async function POST(request: Request) {
     const result = await response.json();
     const optimized = result[0]?.generated_text || content;
 
-    // 3. Store in cache (TTL 7 days)
+    // 3. Store in cache (TTL 3 days)
     await supabase.from("cache").insert([
       {
         hash: contentHash,
         result: optimized,
-        expires_at: new Date(Date.now() + 7 * 86400 * 1000).toISOString(),
+        expires_at: new Date(Date.now() + 3 * 86400 * 1000).toISOString(),
       },
     ]);
 
