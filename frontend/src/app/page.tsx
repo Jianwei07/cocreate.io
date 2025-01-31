@@ -11,6 +11,7 @@ import SaveButton from "@/components/SaveButton";
 import { useSavedContent } from "@/hooks/useSavedContent";
 import { supabase } from "@/lib/supabase";
 import { User } from "@supabase/supabase-js";
+import SponsorLinks from "@/components/SponsorLinks";
 
 type Platform = "threads" | "bluesky" | "x";
 const platforms = [
@@ -150,6 +151,10 @@ export default function Home() {
           </span>
         )}
       </button>
+      {/* Sponsor Links Container at the Bottom */}
+      <div className="fixed bottom-4 left-1/2 -translate-x-1/2 flex flex-col items-center gap-2">
+        <SponsorLinks orientation="horizontal" />
+      </div>
     </div>
   );
 }
