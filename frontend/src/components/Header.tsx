@@ -1,23 +1,22 @@
-// components/Header.tsx
 import React from "react";
-import {
-  Card,
-  CardHeader,
-  CardTitle,
-  CardDescription,
-} from "@/components/ui/card";
 
-export default function Header() {
+const Header = () => {
   return (
-    <Card className="border-0 bg-white/50 backdrop-blur-sm">
-      <CardHeader className="text-center">
-        <CardTitle className="text-3xl lg:text-4xl font-bold bg-gradient-to-r from-blue-600 to-violet-600 bg-clip-text text-transparent">
+    <div className="flex items-center space-x-2">
+      {/* Logo and Title Container */}
+      <div className="flex items-center">
+        <span className="text-2xl font-bold bg-gradient-to-r from-blue-600 to-blue-400 bg-clip-text text-transparent">
           CoCreate.io
-        </CardTitle>
-        <CardDescription className="text-base lg:text-lg">
-          Social Media Content Assistant
-        </CardDescription>
-      </CardHeader>
-    </Card>
+        </span>
+      </div>
+
+      {/* Subtitle/Description */}
+      <div className="hidden md:block h-6 w-px bg-gray-200 dark:bg-gray-700 mx-4" />
+      <span className="hidden md:block text-sm text-gray-600 dark:text-gray-300">
+        Social Media Content Tool
+      </span>
+    </div>
   );
-}
+};
+
+export default Header;

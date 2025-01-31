@@ -1,44 +1,29 @@
+// components/ChatPanel.tsx
 import React, { useState, useEffect } from "react";
 import { X, Minimize2, Maximize2, Trash2, Copy } from "lucide-react";
-import { Alert, AlertDescription } from "@/components/ui/alert";
-
-// Define a strict type for the content items
-interface SavedContentItem {
-  id: string;
-  content: string;
-  timestamp: string;
-}
 
 interface ChatPanelProps {
   isOpen: boolean;
   onClose: () => void;
-  savedContent: string[]; // Keep original type to maintain compatibility
-  onDeleteItem?: (id: string) => void;
-  onSelectContent?: (content: string) => void; // New prop to populate the editor
+  savedContent: string[];
+  onSelectContent?: (content: string) => void;
 }
 
 const ChatPanel = ({
   isOpen,
   onClose,
   savedContent,
-  onDeleteItem,
   onSelectContent,
 }: ChatPanelProps) => {
   const [isMinimized, setIsMinimized] = useState(false);
   const [showCopyAlert, setShowCopyAlert] = useState(false);
   const [searchTerm, setSearchTerm] = useState("");
 
-  // Convert string array to proper format and filter out invalid items
-  const formattedContent: SavedContentItem[] = savedContent
-    .filter(
-      (content): content is string =>
-        typeof content === "string" && content !== null && content !== undefined
-    )
-    .map((content, index) => ({
-      id: `item-${index}`,
-      content,
-      timestamp: new Date().toLocaleString(),
-    }));
+  const formattedContent = savedContent.map((content, index) => ({
+    id: `item-${index}`,
+    content,
+    timestamp: new Date().toLocaleString(),
+  }));
 
   const filteredContent = formattedContent.filter((item) =>
     item.content.toLowerCase().includes(searchTerm.toLowerCase())
@@ -73,10 +58,9 @@ const ChatPanel = ({
         />
       )}
       <div
-        className={`fixed right-0 top-0 h-full bg-white shadow-lg transition-all duration-300 ease-in-out 
-          ${isOpen ? "translate-x-0" : "translate-x-full"}
-          ${isMinimized ? "w-20" : "w-96"}
-          border-l border-gray-200`}
+        className={`fixed right-0 top-0 h-full bg-white shadow-lg transition-transform duration-300 ease-in-out ${
+          isOpen ? "translate-x-0" : "translate-x-full"
+        } ${isMinimized ? "w-20" : "w-96"} border-l border-gray-200`}
       >
         <div className="p-4 flex justify-between items-center border-b bg-gray-50">
           {!isMinimized && (
@@ -129,20 +113,18 @@ const ChatPanel = ({
                         >
                           <Copy size={14} />
                         </button>
-                        {onDeleteItem && (
-                          <button
-                            onClick={() => onDeleteItem(item.id)}
-                            className="p-1 hover:bg-gray-200 rounded transition-colors"
-                            title="Delete"
-                          >
-                            <Trash2 size={14} />
-                          </button>
-                        )}
+                        <button
+                          onClick={() => {}}
+                          className="p-1 hover:bg-gray-200 rounded transition-colors"
+                          title="Delete"
+                        >
+                          <Trash2 size={14} />
+                        </button>
                       </div>
                     </div>
                     <p
                       className="mt-2 text-gray-800 cursor-pointer"
-                      onClick={() => onSelectContent?.(item.content)} // Trigger callback to populate editor
+                      onClick={() => onSelectContent?.(item.content)}
                     >
                       {item.content}
                     </p>
@@ -166,9 +148,9 @@ const ChatPanel = ({
           </div>
         )}
         {showCopyAlert && (
-          <Alert className="fixed bottom-4 right-4 w-auto">
-            <AlertDescription>Content copied to clipboard!</AlertDescription>
-          </Alert>
+          <div className="fixed bottom-4 right-4 w-auto bg-green-500 text-white p-4 rounded-lg shadow-lg">
+            Content copied to clipboard!
+          </div>
         )}
       </div>
     </>

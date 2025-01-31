@@ -1,27 +1,34 @@
 // app/page.tsx
 "use client";
-import { useState, useEffect } from "react";
+import React, { useState, useEffect } from "react";
+import { useTheme } from "next-themes";
+import { Moon, Sun, Menu, X, MessageCircle } from "lucide-react";
 import Editor from "@/components/Editor";
-import AIOptimizer from "@/components/AIOptimizer";
-import SponsorLinks from "@/components/SponsorLinks";
 import Auth from "@/components/Auth";
 import ChatPanel from "@/components/ChatPanel";
 import Header from "@/components/Header";
 import SaveButton from "@/components/SaveButton";
 import { useSavedContent } from "@/hooks/useSavedContent";
 import { supabase } from "@/lib/supabase";
-import { User } from "@supabase/supabase-js"; // Import the User type
+import { User } from "@supabase/supabase-js";
+import SponsorLinks from "@/components/SponsorLinks";
 
 type Platform = "threads" | "bluesky" | "x";
+const platforms = [
+  { id: "threads", name: "Threads" },
+  { id: "bluesky", name: "Bluesky" },
+  { id: "x", name: "X/Twitter" },
+] as const;
 
 export default function Home() {
   const [content, setContent] = useState<string>("");
   const [platform, setPlatform] = useState<Platform>("threads");
   const [optimizedContent, setOptimizedContent] = useState<string>("");
-  const [user, setUser] = useState<User | null>(null); // Explicitly type the user state
+  const [user, setUser] = useState<User | null>(null);
   const [isChatOpen, setIsChatOpen] = useState<boolean>(false);
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const { theme, setTheme } = useTheme();
 
-  // Fetch user on page load
   useEffect(() => {
     const fetchUser = async () => {
       const {
@@ -32,86 +39,121 @@ export default function Home() {
     fetchUser();
   }, []);
 
-  // Use the custom hook for saved content
   const { savedContent, saveContent } = useSavedContent(user?.id ?? null);
 
-  // Function to populate the editor with selected content
   const handleSelectContent = (selectedContent: string) => {
-    setContent(selectedContent); // Update the editor's content
-    setIsChatOpen(false); // Close the chat panel after selection
+    setContent(selectedContent);
+    setIsChatOpen(false);
   };
 
   return (
-    <div className="relative min-h-screen">
-      {/* Desktop Sponsor Links */}
-      <div className="hidden lg:block fixed left-4 top-1/2 -translate-y-1/2 space-y-4 z-50">
-        <SponsorLinks orientation="vertical" />
-      </div>
+    <div className="relative min-h-screen bg-gray-50 dark:bg-gray-900 transition-colors duration-300">
+      {/* Navigation Bar */}
+      <nav className="fixed top-0 left-0 right-0 z-50 bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700">
+        <div className="max-w-7xl mx-auto px-4">
+          <div className="flex justify-between items-center h-16">
+            <Header />
+            {/* Desktop Navigation */}
+            <div className="hidden md:flex items-center space-x-4">
+              <Auth />
+              <button
+                onClick={() => setTheme(theme === "dark" ? "light" : "dark")}
+                className="p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
+              >
+                {theme === "dark" ? <Sun size={20} /> : <Moon size={20} />}
+              </button>
+            </div>
+            {/* Mobile Navigation Button */}
+            <button
+              onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
+              className="md:hidden p-2"
+            >
+              {isMobileMenuOpen ? <X size={24} /> : <Menu size={24} />}
+            </button>
+          </div>
+        </div>
+        {/* Mobile Menu */}
+        {isMobileMenuOpen && (
+          <div className="md:hidden border-t border-gray-200 dark:border-gray-700 p-4">
+            <div className="flex flex-col space-y-4">
+              <Auth />
+              <button
+                onClick={() => setTheme(theme === "dark" ? "light" : "dark")}
+                className="flex items-center space-x-2 p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700"
+              >
+                {theme === "dark" ? <Sun size={20} /> : <Moon size={20} />}
+                <span>{theme === "dark" ? "Light Mode" : "Dark Mode"}</span>
+              </button>
+            </div>
+          </div>
+        )}
+      </nav>
 
       {/* Main Content */}
-      <main className="min-h-screen bg-gradient-to-b from-gray-50 to-gray-100 dark:from-gray-900 dark:to-gray-800 px-4 py-6 lg:px-6">
-        <div className="max-w-4xl mx-auto space-y-6">
-          {/* Header */}
-          <Header />
-
-          {/* Mobile Sponsor Links */}
-          <div className="lg:hidden">
-            <SponsorLinks orientation="horizontal" />
+      <main className="pt-20 px-4 pb-24">
+        {" "}
+        {/* Added padding-bottom for footer */}
+        <div className="max-w-4xl mx-auto space-y-8">
+          {/* Platform Selection */}
+          <div className="flex justify-center space-x-2 p-2 bg-white dark:bg-gray-800 rounded-lg shadow-sm">
+            {platforms.map(({ id, name }) => (
+              <button
+                key={id}
+                onClick={() => setPlatform(id)}
+                className={`px-4 py-2 rounded-md transition-colors ${
+                  platform === id
+                    ? "bg-blue-500 text-white"
+                    : "hover:bg-gray-100 dark:hover:bg-gray-700"
+                }`}
+              >
+                {name}
+              </button>
+            ))}
           </div>
 
-          {/* Authentication */}
-          <div className="flex justify-end mb-4">
-            <Auth />
+          {/* Editor and AI Optimizer */}
+          <div className="grid gap-6">
+            <Editor
+              content={content}
+              setContent={setContent}
+              platform={platform}
+              setPlatform={setPlatform}
+              optimizedContent={optimizedContent}
+              setOptimizedContent={setOptimizedContent}
+            />
+            <div className="flex justify-end space-x-4">
+              <SaveButton onSave={() => saveContent(content)} />
+            </div>
           </div>
-
-          {/* Main Content */}
-          <Editor
-            content={content}
-            setContent={setContent}
-            platform={platform}
-            setPlatform={setPlatform}
-            optimizedContent={optimizedContent}
-            setOptimizedContent={setOptimizedContent}
-          />
-
-          <SaveButton onSave={() => saveContent(content)} />
-
-          <AIOptimizer
-            content={content}
-            platform={platform}
-            onOptimized={(optimized) => setOptimizedContent(optimized)}
-          />
         </div>
       </main>
 
-      {/* Side Chat Panel */}
+      {/* Chat Panel */}
       <ChatPanel
         isOpen={isChatOpen}
         onClose={() => setIsChatOpen(false)}
         savedContent={savedContent}
-        onSelectContent={handleSelectContent} // Pass the callback to populate the editor
+        onSelectContent={handleSelectContent}
       />
 
-      {/* Open Chat Button */}
+      {/* Chat Toggle Button */}
       <button
-        onClick={() => setIsChatOpen(true)}
-        className="fixed bottom-4 right-4 bg-blue-500 text-white p-3 rounded-full shadow-lg transition-transform duration-300 hover:scale-110 active:scale-95 z-50"
+        onClick={() => setIsChatOpen((prev) => !prev)}
+        className={`fixed bottom-20 right-6 bg-blue-500 hover:bg-blue-600 text-white p-3 rounded-full shadow-lg transition-all duration-300 hover:scale-105 active:scale-95 ${
+          savedContent.length > 0 && !isChatOpen ? "animate-bounce" : ""
+        }`}
       >
-        <svg
-          xmlns="http://www.w3.org/2000/svg"
-          className="h-6 w-6"
-          fill="none"
-          viewBox="0 0 24 24"
-          stroke="currentColor"
-        >
-          <path
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            strokeWidth={2}
-            d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8s-9-3.582-9-8 4.03-8 9-8 9 3.582 9 8z"
-          />
-        </svg>
+        <MessageCircle size={24} />
+        {savedContent.length > 0 && (
+          <span className="absolute -top-2 -right-2 bg-red-500 text-white text-xs px-2 py-1 rounded-full">
+            {savedContent.length}
+          </span>
+        )}
       </button>
+
+      <div className="fixed bottom-4 left-1/2 -translate-x-1/2 flex flex-col items-center gap-2">
+        <SponsorLinks orientation="horizontal" />
+      </div>
     </div>
   );
 }

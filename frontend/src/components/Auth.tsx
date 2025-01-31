@@ -1,11 +1,11 @@
 // components/Auth.tsx
 "use client";
 import { useState, useEffect } from "react";
-import { User } from "@supabase/supabase-js"; // Import the User type
+import { User } from "@supabase/supabase-js";
 import { supabase } from "@/lib/supabase";
 
 export default function Auth() {
-  const [user, setUser] = useState<User | null>(null); // Explicitly type the user state
+  const [user, setUser] = useState<User | null>(null);
 
   useEffect(() => {
     const checkUser = async () => {
@@ -19,7 +19,7 @@ export default function Auth() {
 
   const handleLogin = async (provider: "google" | "github") => {
     const { error } = await supabase.auth.signInWithOAuth({
-      provider, // Supports "google", "github", etc.
+      provider,
     });
     if (error) console.error("Login Error:", error);
   };
@@ -30,13 +30,15 @@ export default function Auth() {
   };
 
   return (
-    <div className="flex gap-4">
+    <div className="flex items-center gap-4">
       {user ? (
         <>
-          <p>Welcome, {user.email}</p>
+          <p className="text-sm text-gray-600 dark:text-gray-300 hidden md:block">
+            Welcome, {user.email}
+          </p>
           <button
             onClick={handleLogout}
-            className="px-4 py-2 bg-red-500 text-white"
+            className="px-4 py-2 bg-red-500 hover:bg-red-600 text-white rounded-md text-sm font-medium transition-colors"
           >
             Logout
           </button>
@@ -45,15 +47,17 @@ export default function Auth() {
         <>
           <button
             onClick={() => handleLogin("google")}
-            className="px-4 py-2 bg-blue-500 text-white"
+            className="hidden md:block px-4 py-2 bg-blue-500 hover:bg-blue-600 text-white rounded-md text-sm font-medium transition-colors"
           >
             Login with Google
           </button>
           <button
             onClick={() => handleLogin("github")}
-            className="px-4 py-2 bg-gray-800 text-white"
+            className="px-4 py-2 bg-gray-800 hover:bg-gray-900 text-white rounded-md text-sm font-medium transition-colors"
           >
-            Login with GitHub
+            {/* Show different text based on screen size */}
+            <span className="hidden md:inline">Login with GitHub</span>
+            <span className="md:hidden">Login</span>
           </button>
         </>
       )}
