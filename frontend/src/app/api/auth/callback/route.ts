@@ -1,4 +1,4 @@
-// app/api/auth/callback.ts
+// app/api/auth/callback/route.ts
 import { NextResponse } from "next/server";
 import { supabase } from "@/lib/supabase";
 
