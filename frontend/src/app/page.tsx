@@ -11,7 +11,7 @@ import SaveButton from "@/components/SaveButton";
 import { useSavedContent } from "@/hooks/useSavedContent";
 import { supabase } from "@/lib/supabase";
 import { User } from "@supabase/supabase-js";
-import SponsorLinks from "@/components/SponsorLinks";
+// import SponsorLinks from "@/components/SponsorLinks";
 
 type Platform = "threads" | "bluesky" | "x";
 const platforms = [
@@ -78,10 +78,11 @@ export default function Home() {
         {isMobileMenuOpen && (
           <div className="md:hidden border-t border-gray-200 dark:border-gray-700 p-4">
             <div className="flex flex-col space-y-4">
-              <Auth />
+              <Auth />{" "}
+              {/* The MobileAuthButtons will automatically show here */}
               <button
                 onClick={() => setTheme(theme === "dark" ? "light" : "dark")}
-                className="flex items-center space-x-2 p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700"
+                className="flex items-center space-x-2 p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 w-full justify-start"
               >
                 {theme === "dark" ? <Sun size={20} /> : <Moon size={20} />}
                 <span>{theme === "dark" ? "Light Mode" : "Dark Mode"}</span>
@@ -151,10 +152,10 @@ export default function Home() {
           </span>
         )}
       </button>
-      {/* Sponsor Links Container at the Bottom */}
+      {/* Sponsor Links Container at the Bottom
       <div className="fixed bottom-4 left-1/3 -translate-x-1/2 flex flex-col items-center gap-2">
         <SponsorLinks orientation="horizontal" />
-      </div>
+      </div> */}
     </div>
   );
 }
