@@ -20,6 +20,14 @@ export default function Auth() {
   const [error, setError] = useState<string | null>(null);
   const [isEmailDialogOpen, setIsEmailDialogOpen] = useState(false);
 
+  // Determine the base URL dynamically
+  const getBaseUrl = () => {
+    if (typeof window !== "undefined") {
+      return window.location.origin; // Use current origin in browser
+    }
+    return process.env.NEXT_PUBLIC_PROD_URL || "https://cocreate-io.vercel.app";
+  };
+
   useEffect(() => {
     const checkUser = async () => {
       const {
@@ -28,13 +36,11 @@ export default function Auth() {
       setUser(user);
     };
     checkUser();
-
     const {
       data: { subscription },
     } = supabase.auth.onAuthStateChange((_event, session) => {
       setUser(session?.user ?? null);
     });
-
     return () => subscription.unsubscribe();
   }, []);
 
@@ -45,7 +51,7 @@ export default function Auth() {
       const { error } = await supabase.auth.signInWithOAuth({
         provider,
         options: {
-          redirectTo: `${window.location.origin}/auth/callback`,
+          redirectTo: `${getBaseUrl()}/auth/callback`, // Use dynamic base URL
         },
       });
       if (error) throw error;
@@ -113,7 +119,7 @@ export default function Auth() {
             className="gap-2"
           >
             <Chrome className="h-4 w-4" />
-            Login in Google
+            Login with Google
           </Button>
           <Button
             variant="outline"
@@ -123,7 +129,7 @@ export default function Auth() {
             className="gap-2"
           >
             <Github className="h-4 w-4" />
-            Login in Github
+            Login with Github
           </Button>
           <Button
             variant="outline"
@@ -133,7 +139,7 @@ export default function Auth() {
             className="gap-2"
           >
             <Mail className="h-4 w-4" />
-            Login in Email
+            Login with Email
           </Button>
         </>
       )}
@@ -196,7 +202,6 @@ export default function Auth() {
     <>
       <DesktopAuth />
       <MobileAuthButtons />
-
       <Dialog open={isEmailDialogOpen} onOpenChange={setIsEmailDialogOpen}>
         <DialogContent className="sm:max-w-md">
           <DialogHeader>
