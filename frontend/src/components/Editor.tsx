@@ -27,6 +27,27 @@ interface EditorProps {
   setOptimizedContent: Dispatch<SetStateAction<string>>;
 }
 
+const CopyAlert = ({
+  isVisible,
+  postNumber,
+}: {
+  isVisible: boolean;
+  postNumber: number;
+}) => (
+  <AnimatePresence>
+    {isVisible && (
+      <motion.div
+        initial={{ opacity: 0, y: -10 }}
+        animate={{ opacity: 1, y: 0 }}
+        exit={{ opacity: 0 }}
+        className="absolute top-12 right-2 bg-green-500 text-white px-3 py-1.5 rounded-md text-sm shadow-lg z-50"
+      >
+        Post {postNumber} copied to clipboard!
+      </motion.div>
+    )}
+  </AnimatePresence>
+);
+
 export default function Editor({
   content,
   setContent,
@@ -38,6 +59,7 @@ export default function Editor({
   const chunks = splitContent(optimizedContent || content, platform);
   const characterCount = (optimizedContent || content).length;
   const [copiedIndex, setCopiedIndex] = useState<number | null>(null);
+  const [copiedPostNumber, setCopiedPostNumber] = useState<number | null>(null);
   const [expandedPost, setExpandedPost] = useState<number | null>(null);
   const [showBreakpointTip, setShowBreakpointTip] = useState(false);
 
@@ -90,7 +112,13 @@ export default function Editor({
   const handleCopy = (chunk: string, index: number) => {
     navigator.clipboard.writeText(chunk);
     setCopiedIndex(index);
-    setTimeout(() => setCopiedIndex(null), 2000);
+    setCopiedPostNumber(index + 1);
+
+    // Reset both copied states after 2 seconds
+    setTimeout(() => {
+      setCopiedIndex(null);
+      setCopiedPostNumber(null);
+    }, 2000);
   };
 
   const handleCopyAll = () => {
@@ -106,7 +134,7 @@ export default function Editor({
   };
 
   return (
-    <div className="space-y-4">
+    <div className="space-y-4 relative">
       {/* Platform Selector and Stats */}
       <div className="flex flex-col space-y-4 sm:flex-row sm:space-y-0 sm:items-center sm:justify-between">
         <Tabs
@@ -137,6 +165,12 @@ export default function Editor({
           </Badge>
         </div>
       </div>
+
+      {/* Copy Alert Component */}
+      <CopyAlert
+        isVisible={copiedPostNumber !== null}
+        postNumber={copiedPostNumber || 0}
+      />
 
       {/* Enhanced Text Editor */}
       <Card className="border-2 border-gray-200 dark:border-gray-800 relative">
