@@ -13,44 +13,54 @@ export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));
 }
 
-// Function to split content based on platform character limits
+// Function to split content based on platform character limits and breakpoints
 export function splitContent(
   text: string,
   platform: keyof typeof PLATFORM_LIMITS
 ): string[] {
   const limit = PLATFORM_LIMITS[platform];
-  const words = text.split(/\s+/);
+  const breakpoint = "//"; // Define the breakpoint syntax
+
+  // Step 1: Split the content into segments using the breakpoint
+  const rawSegments = text
+    .split(breakpoint) // Split by the breakpoint
+    .map((segment) => segment.trim()) // Trim whitespace around segments
+    .filter((segment) => segment.length > 0); // Remove empty segments
+
+  // Step 2: Further split each segment into chunks based on the platform's character limit
   const chunks: string[] = [];
-  let currentChunk = "";
+  for (const segment of rawSegments) {
+    const words = segment.split(/\s+/);
+    let currentChunk = "";
 
-  for (const word of words) {
-    // Check if adding the next word would exceed the limit
-    const potentialChunk = currentChunk ? `${currentChunk} ${word}` : word;
+    for (const word of words) {
+      // Check if adding the next word would exceed the limit
+      const potentialChunk = currentChunk ? `${currentChunk} ${word}` : word;
+      if (potentialChunk.length <= limit) {
+        currentChunk = potentialChunk;
+      } else {
+        // If the current chunk is not empty, push it to chunks
+        if (currentChunk) {
+          chunks.push(currentChunk.trim());
+        }
+        // Start a new chunk with the current word
+        currentChunk = word;
 
-    if (potentialChunk.length <= limit) {
-      currentChunk = potentialChunk;
-    } else {
-      // If current chunk is not empty, push it to chunks
-      if (currentChunk) {
-        chunks.push(currentChunk.trim());
-      }
-      // Start new chunk with current word
-      currentChunk = word;
-
-      // Handle case where single word exceeds limit
-      if (word.length > limit) {
-        // Split the word into chunks of maximum length
-        while (currentChunk.length > limit) {
-          chunks.push(currentChunk.slice(0, limit));
-          currentChunk = currentChunk.slice(limit);
+        // Handle cases where a single word exceeds the limit
+        if (word.length > limit) {
+          // Split the word into chunks of maximum length
+          while (currentChunk.length > limit) {
+            chunks.push(currentChunk.slice(0, limit));
+            currentChunk = currentChunk.slice(limit);
+          }
         }
       }
     }
-  }
 
-  // Push the last chunk if it's not empty
-  if (currentChunk) {
-    chunks.push(currentChunk.trim());
+    // Push the last chunk for this segment if it's not empty
+    if (currentChunk) {
+      chunks.push(currentChunk.trim());
+    }
   }
 
   return chunks;

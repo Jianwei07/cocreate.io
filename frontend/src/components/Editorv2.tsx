@@ -11,7 +11,7 @@ import {
   ClipboardCopy,
   ChevronDown,
   ChevronUp,
-  PlusCircle,
+  Scissors,
   SplitSquareHorizontal,
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
@@ -170,15 +170,16 @@ export default function Editor({
             </div>
 
             {/* Mobile Controls */}
-            <Button
-              onClick={insertBreakpoint}
-              size="sm"
-              variant="outline"
-              className="sm:hidden absolute top-2 right-4 h-8 px-2 bg-white dark:bg-gray-800"
-            >
-              <PlusCircle className="h-4 w-4 sm:mr-2" />
-              <span className="hidden sm:inline">Split Post</span>
-            </Button>
+            <div className="sm:hidden fixed bottom-6 right-6 flex flex-col gap-3 z-50">
+              <Button
+                onClick={insertBreakpoint}
+                size="icon"
+                className="h-12 w-12 rounded-full shadow-lg bg-blue-500 hover:bg-blue-600 text-white"
+                title="Split Post"
+              >
+                <Scissors className="h-5 w-5" />
+              </Button>
+            </div>
 
             {/* Breakpoint Feedback Animation */}
             <AnimatePresence>
