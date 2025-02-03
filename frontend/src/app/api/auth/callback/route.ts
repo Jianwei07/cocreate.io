@@ -1,26 +1,31 @@
-// app/api/auth/callback/route.ts
 import { NextResponse } from "next/server";
 import { supabase } from "@/lib/supabase";
 
+// Helper function to determine the base URL dynamically
+const getBaseUrl = () => {
+  return process.env.NODE_ENV === "production"
+    ? "https://cocreate-io.vercel.app" // Production URL
+    : "http://localhost:3000"; // Development URL
+};
+
 export async function GET(request: Request) {
   try {
-    // Extract query parameters from the request URL
-    const url = new URL(request.url);
-    const code = url.searchParams.get("code");
-    const error = url.searchParams.get("error");
+    const url = new URL(request.url); // Parse the request URL
+    const code = url.searchParams.get("code"); // Extract the authorization code
+    const error = url.searchParams.get("error"); // Extract any error parameters
 
+    const BASE_URL = getBaseUrl(); // Dynamically determine the base URL
+
+    // Handle errors returned by the OAuth provider
     if (error) {
       console.error("OAuth Error:", error);
-      return NextResponse.redirect(
-        `${process.env.NEXT_PUBLIC_BASE_URL}/?error=${error}`
-      );
+      return NextResponse.redirect(`${BASE_URL}/?error=${error}`);
     }
 
+    // Ensure an authorization code is present
     if (!code) {
       console.error("No authorization code found in callback.");
-      return NextResponse.redirect(
-        `${process.env.NEXT_PUBLIC_BASE_URL}/?error=missing_code`
-      );
+      return NextResponse.redirect(`${BASE_URL}/?error=missing_code`);
     }
 
     // Exchange the authorization code for a session
@@ -28,21 +33,18 @@ export async function GET(request: Request) {
       code
     );
 
+    // Handle errors during session exchange
     if (supabaseError) {
       console.error("Failed to exchange code for session:", supabaseError);
-      return NextResponse.redirect(
-        `${process.env.NEXT_PUBLIC_BASE_URL}/?error=auth_failed`
-      );
+      return NextResponse.redirect(`${BASE_URL}/?error=auth_failed`);
     }
 
-    // Redirect the user to the home page or dashboard
-    return NextResponse.redirect(
-      `${process.env.NEXT_PUBLIC_BASE_URL}/dashboard`
-    );
+    // Redirect to the dashboard on successful login
+    return NextResponse.redirect(`${BASE_URL}/dashboard`);
   } catch (err) {
+    // Log unexpected errors and redirect to an error page
     console.error("Unexpected error in /auth/callback:", err);
-    return NextResponse.redirect(
-      `${process.env.NEXT_PUBLIC_BASE_URL}/?error=unexpected_error`
-    );
+    const BASE_URL = getBaseUrl();
+    return NextResponse.redirect(`${BASE_URL}/?error=unexpected_error`);
   }
 }

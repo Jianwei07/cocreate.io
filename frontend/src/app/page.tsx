@@ -4,7 +4,6 @@ import React, { useState, useEffect } from "react";
 import { useTheme } from "next-themes";
 import { Moon, Sun, Menu, X, MessageCircle } from "lucide-react";
 import Editor from "@/components/Editor";
-import Auth from "@/components/Auth";
 import ChatPanel from "@/components/ChatPanel";
 import Header from "@/components/Header";
 import SaveButton from "@/components/SaveButton";
@@ -57,7 +56,6 @@ export default function Home() {
             <Header />
             {/* Desktop Navigation */}
             <div className="hidden md:flex items-center space-x-4">
-              <Auth />
               <button
                 onClick={() => setTheme(theme === "dark" ? "light" : "dark")}
                 className="p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
@@ -78,8 +76,6 @@ export default function Home() {
         {isMobileMenuOpen && (
           <div className="md:hidden border-t border-gray-200 dark:border-gray-700 p-4">
             <div className="flex flex-col space-y-4">
-              <Auth />{" "}
-              {/* The MobileAuthButtons will automatically show here */}
               <button
                 onClick={() => setTheme(theme === "dark" ? "light" : "dark")}
                 className="flex items-center space-x-2 p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 w-full justify-start"
