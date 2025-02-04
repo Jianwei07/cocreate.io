@@ -1,9 +1,10 @@
 // frontend/lib/cache.ts
 const LOCAL_CACHE_PREFIX = "cocreate-";
+const CACHE_EXPIRATION_TIME = 86400000; // 1 day in milliseconds
 
 export function cacheContent(content: string, optimized: string) {
   if (typeof window !== "undefined") {
-    const key = LOCAL_CACHE_PREFIX + hash(content);
+    const key = generateCacheKey(content);
     localStorage.setItem(
       key,
       JSON.stringify({
@@ -16,17 +17,27 @@ export function cacheContent(content: string, optimized: string) {
 
 export function getCachedContent(content: string): string | null {
   if (typeof window !== "undefined") {
-    const key = LOCAL_CACHE_PREFIX + hash(content);
+    const key = generateCacheKey(content);
     const cached = localStorage.getItem(key);
     if (cached) {
-      const { optimized, timestamp } = JSON.parse(cached);
-      // 1 day local cache
-      if (Date.now() - timestamp < 86400000) {
-        return optimized;
+      try {
+        const { optimized, timestamp } = JSON.parse(cached);
+        if (Date.now() - timestamp < CACHE_EXPIRATION_TIME) {
+          return optimized;
+        } else {
+          localStorage.removeItem(key); // Clear expired cache
+        }
+      } catch (error) {
+        console.error("Error parsing cache: ", error);
+        localStorage.removeItem(key); // Remove corrupted cache
       }
     }
   }
   return null;
+}
+
+function generateCacheKey(content: string): string {
+  return LOCAL_CACHE_PREFIX + hash(content);
 }
 
 function hash(content: string): string {

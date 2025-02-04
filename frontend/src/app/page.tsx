@@ -1,8 +1,7 @@
 // app/page.tsx
 "use client";
 import React, { useState, useEffect } from "react";
-import { useTheme } from "next-themes";
-import { Moon, Sun, Menu, X, MessageCircle } from "lucide-react";
+import { MessageCircle } from "lucide-react";
 import Editor from "@/components/Editor";
 import ChatPanel from "@/components/ChatPanel";
 import Header from "@/components/Header";
@@ -10,7 +9,7 @@ import SaveButton from "@/components/SaveButton";
 import { useSavedContent } from "@/hooks/useSavedContent";
 import { supabase } from "@/lib/supabase";
 import { User } from "@supabase/supabase-js";
-// import SponsorLinks from "@/components/SponsorLinks";
+import AIOptimizer from "@/components/AIOptimizer";
 
 type Platform = "threads" | "bluesky" | "x";
 const platforms = [
@@ -25,8 +24,6 @@ export default function Home() {
   const [optimizedContent, setOptimizedContent] = useState<string>("");
   const [user, setUser] = useState<User | null>(null);
   const [isChatOpen, setIsChatOpen] = useState<boolean>(false);
-  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
-  const { theme, setTheme } = useTheme();
 
   useEffect(() => {
     const fetchUser = async () => {
@@ -50,46 +47,12 @@ export default function Home() {
   return (
     <div className="relative min-h-screen bg-gray-50 dark:bg-gray-900 transition-colors duration-300">
       {/* Navigation Bar */}
-      <nav className="fixed top-0 left-0 right-0 z-50 bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700">
-        <div className="max-w-7xl mx-auto px-4">
-          <div className="flex justify-between items-center h-16">
-            <Header />
-            {/* Desktop Navigation */}
-            <div className="hidden md:flex items-center space-x-4">
-              <button
-                onClick={() => setTheme(theme === "dark" ? "light" : "dark")}
-                className="p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
-              >
-                {theme === "dark" ? <Sun size={20} /> : <Moon size={20} />}
-              </button>
-            </div>
-            {/* Mobile Navigation Button */}
-            <button
-              onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
-              className="md:hidden p-2"
-            >
-              {isMobileMenuOpen ? <X size={24} /> : <Menu size={24} />}
-            </button>
-          </div>
-        </div>
-        {/* Mobile Menu */}
-        {isMobileMenuOpen && (
-          <div className="md:hidden border-t border-gray-200 dark:border-gray-700 p-4">
-            <div className="flex flex-col space-y-4">
-              <button
-                onClick={() => setTheme(theme === "dark" ? "light" : "dark")}
-                className="flex items-center space-x-2 p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 w-full justify-start"
-              >
-                {theme === "dark" ? <Sun size={20} /> : <Moon size={20} />}
-                <span>{theme === "dark" ? "Light Mode" : "Dark Mode"}</span>
-              </button>
-            </div>
-          </div>
-        )}
-      </nav>
+      <Header />
 
       {/* Main Content */}
-      <main className="pt-20 px-4 pb-6">
+      <main className="pt-16 px-4 pb-6 md:px-8 lg:px-12">
+        {" "}
+        {/* Reduced padding-top from pt-20 to pt-16 */}
         <div className="max-w-4xl mx-auto space-y-8">
           {/* Platform Selection */}
           <div className="flex justify-center space-x-2 p-2 bg-white dark:bg-gray-800 rounded-lg shadow-sm">
@@ -118,7 +81,12 @@ export default function Home() {
               optimizedContent={optimizedContent}
               setOptimizedContent={setOptimizedContent}
             />
-            <div className="flex justify-end space-x-4">
+            <div className="flex justify-between items-center">
+              <AIOptimizer
+                content={content}
+                platform={platform}
+                onOptimized={setOptimizedContent}
+              />
               <SaveButton onSave={() => saveContent(content)} />
             </div>
           </div>
@@ -148,10 +116,6 @@ export default function Home() {
           </span>
         )}
       </button>
-      {/* Sponsor Links Container at the Bottom
-      <div className="fixed bottom-4 left-1/3 -translate-x-1/2 flex flex-col items-center gap-2">
-        <SponsorLinks orientation="horizontal" />
-      </div> */}
     </div>
   );
 }
