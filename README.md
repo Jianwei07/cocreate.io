@@ -15,8 +15,8 @@ A short form social media content optimization platform that adapts AI-generated
 - **Backend**: FastAPI + Python
 - **Database**: Supabase (PostgreSQL)
 - **AI**: DeepSeek (via Hugging Face)
-- **Auth**: Firebase Authentication
-- **Hosting**: Vercel (Frontend) + Render (Backend)
+- **Auth**: Supabase Authentication
+- **Hosting**: Vercel (Frontend) + HuggingFace Interface API vLLM 
 
 ## Development Setup
 
