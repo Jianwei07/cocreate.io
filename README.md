@@ -1,9 +1,10 @@
-# CoCreate.io
+# CoCreate - Short Form Content Personal Tool
 
-A social media content optimization platform that adapts AI-generated text to different platform formats.
+A short form social media content optimization platform that adapts AI-generated text to different platform formats based on character count.
 
 ## Features
 - Platform selection (Bluesky, Twitter/X, Threads)
+- Breakpoints to seperate words into posts
 - AI-powered content optimization using DeepSeek
 - Character count validation
 - Hashtag recommendations
