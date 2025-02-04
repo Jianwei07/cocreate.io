@@ -1,6 +1,10 @@
-# Tell GitHub to count all TypeScript files
+# ================================
+# Enable detection of TypeScript files
+# ================================
 *.ts linguist-detectable=true
 *.tsx linguist-detectable=true
 
-# Reduce weight of Python if necessary
-*.py linguist-vendored
+# ================================
+# Ensure Python files are detected
+# ================================
+*.py linguist-detectable=true
