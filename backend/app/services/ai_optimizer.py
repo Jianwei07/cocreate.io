@@ -1,11 +1,16 @@
 import requests
 import json
-from app.config import VLLM_HOST, MAX_TOKENS, TEMPERATURE
+from app.config import HF_API_URL, HF_API_KEY
 
-# Define prompt templates for different actions.
+HEADERS = {
+    "Authorization": f"Bearer {HF_API_KEY}",
+    "Content-Type": "application/json",
+}
+
+# Define prompt templates for each action
 PROMPT_TEMPLATES = {
     "Polish Writing": "Enhance clarity and flow of the following text while preserving its meaning:\n\n{}",
-    "Fix Grammar": "Correct any grammar and spelling errors in the following text while preserving its meaning:\n\n{}",
+    "Fix Grammar": "Fix any grammar and spelling mistakes in the following text while preserving its meaning:\n\n{}",
     "Simplify": "Simplify the following text to make it easier to understand:\n\n{}",
     "Condense": "Summarize the following text more concisely:\n\n{}",
     "Expand": "Expand the following text with more detail and explanation:\n\n{}",
@@ -18,18 +23,18 @@ def optimize_text(text: str, action: str) -> str:
     if action not in PROMPT_TEMPLATES:
         return "Invalid optimization action selected."
 
+    # Build the structured prompt:
     formatted_prompt = PROMPT_TEMPLATES[action].format(text)
-    payload = {
-        "prompt": formatted_prompt,
-        "temperature": TEMPERATURE,
-        "max_tokens": MAX_TOKENS,
-    }
+
+    payload = {"inputs": formatted_prompt}
     try:
-        response = requests.post(f"{VLLM_HOST}/generate", json=payload)
-        response_data = response.json()
+        response = requests.post(HF_API_URL, headers=HEADERS, data=json.dumps(payload))
+        # Check for a successful response
         if response.status_code == 200:
-            return response_data["text"]
+            result = response.json()
+            # Assuming the API returns a list with one result
+            return result[0]["generated_text"]
         else:
-            return f"Error {response.status_code}: {response_data.get('error', 'Unknown error')}"
+            return f"Error {response.status_code}: {response.text}"
     except requests.exceptions.RequestException as e:
         return f"Request failed: {str(e)}"

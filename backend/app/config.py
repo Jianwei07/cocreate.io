@@ -3,8 +3,6 @@ from dotenv import load_dotenv
 
 load_dotenv()
 
-# Define model settings
-VLLM_HOST = os.getenv("VLLM_HOST", "http://localhost:8001")
-VLLM_MODEL = os.getenv("VLLM_MODEL", "deepseek-ai/deepseek-coder-1.3b")
-MAX_TOKENS = int(os.getenv("MAX_TOKENS", 300))
-TEMPERATURE = float(os.getenv("TEMPERATURE", 0.7))
+HF_API_URL = os.getenv("HF_API_URL", "https://api-inference.huggingface.co/models/mistralai/Mistral-7B-Instruct-v0.2")
+HF_API_KEY = os.getenv("HF_API_KEY", "")
+RATE_LIMIT = os.getenv("RATE_LIMIT", "5/minute")  # e.g., 5 requests per minute
