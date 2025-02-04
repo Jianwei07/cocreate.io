@@ -9,7 +9,7 @@ import SaveButton from "@/components/SaveButton";
 import { useSavedContent } from "@/hooks/useSavedContent";
 import { supabase } from "@/lib/supabase";
 import { User } from "@supabase/supabase-js";
-import AIOptimizer from "@/components/AIOptimizer";
+// import AIOptimizer from "@/components/AIOptimizer";
 
 type Platform = "threads" | "bluesky" | "x";
 const platforms = [
@@ -82,11 +82,11 @@ export default function Home() {
               setOptimizedContent={setOptimizedContent}
             />
             <div className="flex justify-between items-center">
-              <AIOptimizer
+              {/* <AIOptimizer
                 content={content}
                 platform={platform}
                 onOptimized={setOptimizedContent}
-              />
+              /> */}
               <SaveButton onSave={() => saveContent(content)} />
             </div>
           </div>
